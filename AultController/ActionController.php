@@ -1,7 +1,7 @@
 <?php
   
-require_once __DIR__ . "/../conn.php";
-require_once __DIR__ . '/config/jwt.php';
+require_once __DIR__ . "/../config/conn.php";
+require_once __DIR__ . '/../config/jwt.php';
 
 class ActionController extends Connection {
    function getUser($token){

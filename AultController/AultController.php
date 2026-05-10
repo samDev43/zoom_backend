@@ -1,18 +1,18 @@
 <?php
-require_once __DIR__ . "/../conn.php";
-require_once "config/jwt.php";
+require_once __DIR__ . "/../config/conn.php";
+require_once __DIR__ . '/../config/jwt.php';
   class Authentication extends Connection {
 
-     function sign_up($email,$username,$password, $csrf_token, $role = "user"){
+     function sign_up($email,$username,$password, $role = "user"){
         
-        if($_SESSION['csrf_token'] !== $csrf_token) {
-         // $data = array();
-         echo json_encode ([
-            "mesage" => "Invalid token",
-            "status" => "error"
-            ]);
-         return;
-        }
+      //   if($_SESSION['csrf_token'] !== $csrf_token) {
+      //    // $data = array();
+      //    echo json_encode ([
+      //       "mesage" => "Invalid token",
+      //       "status" => "error"
+      //       ]);
+      //    return;
+      //   }
 
         if(filter_var($email,   FILTER_VALIDATE_EMAIL) === false){
            $data = array("status" => "error", "message" => "Invalid email format");

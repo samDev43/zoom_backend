@@ -1,8 +1,5 @@
 
 
-CREATE DATABASE IF NOT EXISTS `zoom_database`;
-USE `zoom_database`;
-
 CREATE TABLE IF NOT EXISTS users (
   id INT AUTO_INCREMENT PRIMARY KEY,
   profile_picture VARCHAR(255),

@@ -8,10 +8,10 @@ $values = json_decode($data, true);
 $email = $values['email'] ?? null;
 $username = $values['username'] ?? null;
 $password = $values['password'] ?? null;
-$csrf_token = $values['csrf_token'] ?? null;
+// $csrf_token = $values['csrf_token'] ?? null;
 $sign_up = new Authentication();
 // echo($_SESSION['csrf_token']);
 // echo('<br>');
 // echo($csrf_token);
-if ($email && $username && $password) $sign_up->sign_up($email, $username, $password, $csrf_token);
+if ($email && $username && $password) $sign_up->sign_up($email, $username, $password);
 ?>

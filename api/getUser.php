@@ -4,5 +4,5 @@ $actionController = new ActionController();
 $getallheader = getallheaders();
 $token = $getallheader['Authorization'] ?? "";
 if($token)  $token = str_replace('Bearer ', '', $token);
-$actionController->getUser($token);
+if($token) $actionController->getUser($token);
 ?>
