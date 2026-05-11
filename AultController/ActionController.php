@@ -15,17 +15,19 @@ class ActionController extends Connection {
       }
       $user_id = $validate_token->user_id;
       $conn = $this->conn();
-      $quary = "SELECT id, username, email, role, profile_picture FROM users WHERE id = ?";
-      $stmt = $conn->prepare($quary);
-      $stmt->bind_param("i", $user_id);
-      $stmt->execute();
-      $result = $stmt->get_result();
-      $user = $result->fetch_assoc();
+      $quary = "SELECT id, username, email, role, profile_picture 
+                FROM users 
+                WHERE id = $1";
+      $result = preg_quary_params($conn, $quary, [$user_id]);
+      $user = pg_fetch_assoc($result);
+      // $result = $stmt->get_result();
+      // $user = $result->fetch_assoc();
       echo json_encode([
          "status" => "success",
          "data" => $user
       ]);
    }
+
     function addPost($title, $excerpt, $content, $image, $temp_image, $path, $imageSize, $token){
       
       if($image){
@@ -62,11 +64,9 @@ class ActionController extends Connection {
 
          $user_id = $validate_token->user_id;
          $conn = $this->conn();
-         $quary = 'INSERT INTO posts (user_id, title, content, header_image) VALUE(?,?,?,?)';
-         $stmt = $conn->prepare($quary);
-         $stmt->bind_param("isss", $user_id, $title, $content, $finalName);
-         $stmt->execute();
-         if($stmt->affected_rows > 0){
+         $quary = 'INSERT INTO posts (user_id, title, content, header_image) VALUES ($1, $2, $3, $4)';
+         $result = pg_query_params($conn, $quary, [$user_id, $title, $content, $finalName]);
+         if($result){
             echo json_encode([
             "status" => "success",
             "message" => "Post created successfully",
@@ -92,13 +92,10 @@ class ActionController extends Connection {
          $user_id = $validate_token->user_id;
          $user_name = $validate_token->username;
          $conn = $this->conn();
-         $quary = "SELECT * FROM posts WHERE user_id = ?";
-         $stmt = $conn->prepare($quary);
-         $stmt->bind_param("i", $user_id);
-         $stmt->execute();
-         $result = $stmt->get_result();
+         $quary = "SELECT * FROM posts WHERE user_id = $1";
+         $result = pg_query_params($conn, $quary, [$user_id]);
          $userPosts = [];
-         while($row = $result->fetch_assoc()){
+         while($row = pg_fetch_assoc($result)){
             $userPosts[] = $row;
          }
          echo json_encode([
@@ -119,13 +116,11 @@ class ActionController extends Connection {
             ORDER BY posts.created_at DESC
          ";
 
-         $stmt = $conn->prepare($query);
-         $stmt->execute();
-         $result = $stmt->get_result();
+         $result = pg_query($conn, $query);
 
          $posts = [];
 
-         while($row = $result->fetch_assoc()){
+         while($row = pg_fetch_assoc($result)){
             $posts[] = $row;
          }
 
@@ -142,20 +137,15 @@ class ActionController extends Connection {
       $quary = " SELECT posts.*, users.username, users.profile_picture 
          FROM posts 
          JOIN users ON posts.user_id = users.id 
-         WHERE posts.id = ?";
-      $stmt = $conn->prepare($quary);
-      $stmt->bind_param("i", $post_id);
-      $stmt->execute();
-      $result = $stmt->get_result();
-      $post = $result->fetch_assoc();
+         WHERE posts.id = $1";
+     
+     $result = pg_query_params($conn, $quary, [$post_id]);
+      $post = pg_fetch_assoc($result);
 
-      $quary2 = "SELECT comments.*, users.username, users.profile_picture FROM comments JOIN users ON comments.user_id = users.id WHERE comments.post_id = ?";
-      $stmt2 = $conn->prepare($quary2);
-      $stmt2->bind_param("i", $post_id);
-      $stmt2->execute();
-      $result2 = $stmt2->get_result();
+      $quary2 = "SELECT comments.*, users.username, users.profile_picture FROM comments JOIN users ON comments.user_id = users.id WHERE comments.post_id = $1";
+      $result2 = pg_query_params($conn, $quary2, [$post_id]);
       $comments = [];
-      while($row = $result2->fetch_assoc()){
+      while($row = pg_fetch_assoc($result2)){
          $comments[] = $row;
       }
       echo json_encode([
@@ -178,22 +168,24 @@ class ActionController extends Connection {
          }
          $user_id = $validate_token->user_id;
          $conn = $this->conn();
-         $quary = "INSERT INTO comments (post_id, user_id, content) VALUES (?, ?, ?)";
-         $stmt = $conn->prepare($quary);
-         $stmt->bind_param("iis", $post_id, $user_id, $comment);
-         $stmt->execute();
+         $quary = "INSERT INTO comments (post_id, user_id, content) VALUES ($1, $2, $3)";
+         $result = pg_query_params($conn, $quary, [$post_id, $user_id, $comment]);
+         if(!$result){
+            echo json_encode([
+               "status" => "error",
+               "message" => "Failed to post comment"
+            ]);
+            return;
+         }
 
-         $quary2 = "SELECT comments.*, users.username, users.profile_picture FROM comments JOIN users ON comments.user_id = users.id WHERE comments.post_id = ?";
-         $stmt2 = $conn->prepare($quary2);
-         $stmt2->bind_param("i", $post_id);
-         $stmt2->execute();
-         $result2 = $stmt2->get_result();
+         $quary2 = "SELECT comments.*, users.username, users.profile_picture FROM comments JOIN users ON comments.user_id = users.id WHERE comments.post_id = $1";
+         $result2 = pg_query_params($conn, $quary2, [$post_id]);
          $comments = [];
-         while($row = $result2->fetch_assoc()){
-         $comments[] = $row;
-      }
+         while($row = pg_fetch_assoc($result2)){
+             $comments[] = $row;
+         }
 
-         if($stmt->affected_rows > 0){
+         if($result){
             echo json_encode([
                "status" => "success",
                "message" => "Comment posted successfully",
@@ -221,12 +213,9 @@ class ActionController extends Connection {
       }
       $user_id = $validate_token->user_id;
       $user_role = $validate_token->role;
-       $quary0 = "SELECT user_id FROM posts WHERE id = ?";
-       $stmt0 = $conn->prepare($quary0);
-       $stmt0->bind_param('i', $post_id);
-       $stmt0->execute();
-       $result = $stmt0->get_result();
-       $userId = $result->fetch_assoc();
+       $quary0 = "SELECT user_id FROM posts WHERE id = $1";
+       $result0 = pg_query_params($conn, $quary0, [$post_id]);
+       $userId = pg_fetch_assoc($result0);
        if($userId['user_id'] !== $user_id && $user_role !== "admin"){
           echo json_encode([
             "message" => "You cant delete this post",
@@ -235,20 +224,21 @@ class ActionController extends Connection {
           ]);
           return;
        }
-       $quary = "DELETE FROM posts WHERE id = ?";
-       $stmt = $conn->prepare($quary);
-       $stmt->bind_param("i", $post_id);
-       if($stmt->execute()){
-          echo json_encode([
-               "status" => "success",
-               "message" => "Post deleted successfully",
-            ]);
-       }else{
-         echo json_encode([
+       $quary = "DELETE FROM posts WHERE id = $1";
+       $result = pg_query_params($conn, $quary, [$post_id]);
+       
+         if (!$result) {
+            echo json_encode([
                "status" => "error",
-               "message" => "failed to  delete post",
+               "message" => "Delete failed"
             ]);
-       }
+            exit;
+         }
+
+         echo json_encode([
+            "status" => "success",
+            "message" => "Post deleted successfully"
+         ]);
     }
     
     function uploadProfile($token, $profile, $temp_profile, $directory){
@@ -274,10 +264,9 @@ class ActionController extends Connection {
             $destination = $directory . $finalName;
             move_uploaded_file($temp_profile, $destination);
             $conn = $this->conn();
-            $quary = "UPDATE users SET profile_picture = ? WHERE id = ?";
-            $stmt = $conn->prepare($quary);
-            $stmt->bind_param("si", $finalName, $user_id);
-            if($stmt->execute()){
+            $quary = "UPDATE users SET profile_picture = $1 WHERE id = $2";
+            $result = pg_query_params($conn, $quary, [$finalName, $user_id]);
+            if($result){
                echo json_encode([
                   "status" => "success",
                   "message" => "Profile picture updated successfully",
@@ -301,10 +290,9 @@ class ActionController extends Connection {
       }
       $user_id = $validate_jwt->user_id;
       $conn = $this->conn();
-      $quary = "UPDATE users SET username = ? WHERE id = ?";
-      $stmt = $conn->prepare($quary);
-      $stmt->bind_param("si", $new_username, $user_id);
-      if($stmt->execute()){
+      $quary = "UPDATE users SET username = $1 WHERE id = $2";
+      $result = pg_quary_params($conn, $quary, [$new_username, $user_id]);
+      if($result){
          echo json_encode([
             "status" => "success",
             "message" => "Username updated successfully",
@@ -329,10 +317,9 @@ class ActionController extends Connection {
       }
       $user_id = $validate_jwt->user_id;
       $conn = $this->conn();
-      $quary = "UPDATE users SET email = ? WHERE id = ?";
-      $stmt = $conn->prepare($quary);
-      $stmt->bind_param("si", $new_email, $user_id);
-      if($stmt->execute()){
+      $quary = "UPDATE users SET email = $1 WHERE id = $2";
+      $result = pg_quary_params($conn, $quary, [$new_email, $user_id]);
+      if($result){
          echo json_encode([
             "status" => "success",
             "message" => "Email updated successfully",
@@ -357,10 +344,9 @@ class ActionController extends Connection {
             $user_id = $validate_jwt->user_id;
             $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
             $conn = $this->conn();
-            $quary = "UPDATE users SET password = ? WHERE id = ?";
-            $stmt = $conn->prepare($quary);
-            $stmt->bind_param("si", $hashed_password, $user_id);
-            if($stmt->execute()){
+            $quary = "UPDATE users SET password = $1 WHERE id = $2";
+            $result = pg_quary_params($conn, $quary, [$hashed_password, $user_id]);
+            if($result){
                echo json_encode([
                   "status" => "success",
                   "message" => "Password updated successfully",
@@ -399,15 +385,20 @@ class ActionController extends Connection {
          ]);
          return;
       }
-      $quary = "DELETE FROM users WHERE id = ?";
-      $stmt = $conn->prepare($quary);
-      $stmt->bind_param("i", $id);
-      if($stmt->execute()){
+      $quary = "DELETE FROM users WHERE id = $1";
+      $result = pg_query_params($conn, $quary, [$id]);
+       if (!$result) {
          echo json_encode([
-            "status" => "success",
-            "message" => "Account deleted successfully",
+            "status" => "error",
+            "message" => "Delete failed"
          ]);
+         exit;
       }
+       echo json_encode([
+         "status" => "success",
+         "message" => "Account deleted successfully",
+      ]);
+   
    }
 
    function getAllUsers($token){
@@ -420,12 +411,10 @@ class ActionController extends Connection {
          return;
       }
       $conn = $this->conn();
-      $quary = "SELECT id, username, email, role, timestamp FROM users";
-      $stmt = $conn->prepare($quary);
-      $stmt->execute();
-      $result = $stmt->get_result();
+      $quary = "SELECT id, username, email, role, created_at FROM users";
+      $result = pg_query_params($conn, $quary);
       $users = [];
-      while($row = $result->fetch_assoc()){
+      while($row = pg_fetch_assoc($result)){
          $users[] = $row;
       }
       echo json_encode([
