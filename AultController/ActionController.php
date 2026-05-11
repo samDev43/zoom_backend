@@ -39,7 +39,7 @@ class ActionController extends Connection {
 
     function addPost($title, $excerpt, $content, $image, $temp_image, $path, $imageSize, $token){
       
-      if($image){
+      if($image !== null && $temp_image !== null){
           $allowed = ['jpg', 'jpeg', 'png'];
          $ext = strtolower(pathinfo($image, PATHINFO_EXTENSION));
 
@@ -59,7 +59,7 @@ class ActionController extends Connection {
             return;
          }
       }else{
-          $finalName = "public/uploads/default.png";
+          $finalName = "default.png";
          // return;
       }
          $validate_token = validate_jwt($token);
