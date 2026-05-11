@@ -53,16 +53,26 @@ require_once __DIR__ . '/../config/jwt.php';
          $quary = "SELECT * FROM users WHERE email = $1 OR username = $2";
          $result = pg_query_params($conn, $quary, array($username_email, $username_email));
          if(!$result || pg_num_rows($result) == 0){
-            echo json_encode (["status" => "error", "message" => "Invalid username or email or password 4"]);
+            echo json_encode (["status" => "error", "message" => "Invalid credentials"]);
             return;
          }
          $user = pg_fetch_assoc($result);
+
+            if (!isset($user['password'])) {
+               http_response_code(500);
+               echo json_encode([
+                     "status" => "error",
+                     "message" => "Corrupted user data"
+               ]);
+               return;
+            }
+
          if(password_verify($password, $user['password'])){
             // $_SESSION['user_id'] = $user['id'];
                $jwtt = generate_jwt($user);
             echo json_encode (["status" => "success", "token" => $jwtt]);
          } else {
-            echo json_encode (["status" => "error", "message" => "Invalid username or email or password"]);
+            echo json_encode (["status" => "error", "message" => "Invalid credentials"]);
          }
      }
   }
