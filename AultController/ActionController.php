@@ -18,7 +18,7 @@ class ActionController extends Connection {
       $quary = "SELECT id, username, email, role, profile_picture 
                 FROM users 
                 WHERE id = $1";
-      $result = preg_quary_params($conn, $quary, [$user_id]);
+      $result = pg_query_params($conn, $quary, [$user_id]);
       $user = pg_fetch_assoc($result);
       // $result = $stmt->get_result();
       // $user = $result->fetch_assoc();
@@ -291,7 +291,7 @@ class ActionController extends Connection {
       $user_id = $validate_jwt->user_id;
       $conn = $this->conn();
       $quary = "UPDATE users SET username = $1 WHERE id = $2";
-      $result = pg_quary_params($conn, $quary, [$new_username, $user_id]);
+      $result = pg_query_params($conn, $quary, [$new_username, $user_id]);
       if($result){
          echo json_encode([
             "status" => "success",
@@ -318,7 +318,7 @@ class ActionController extends Connection {
       $user_id = $validate_jwt->user_id;
       $conn = $this->conn();
       $quary = "UPDATE users SET email = $1 WHERE id = $2";
-      $result = pg_quary_params($conn, $quary, [$new_email, $user_id]);
+      $result = pg_query_params($conn, $quary, [$new_email, $user_id]);
       if($result){
          echo json_encode([
             "status" => "success",
@@ -345,7 +345,7 @@ class ActionController extends Connection {
             $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
             $conn = $this->conn();
             $quary = "UPDATE users SET password = $1 WHERE id = $2";
-            $result = pg_quary_params($conn, $quary, [$hashed_password, $user_id]);
+            $result = pg_query_params($conn, $quary, [$hashed_password, $user_id]);
             if($result){
                echo json_encode([
                   "status" => "success",
