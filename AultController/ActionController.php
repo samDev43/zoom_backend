@@ -59,7 +59,7 @@ class ActionController extends Connection {
             return;
          }
       }else{
-          $finalName = "default.png";
+          $finalName = "public/uploads/default.png";
          // return;
       }
          $validate_token = validate_jwt($token);
