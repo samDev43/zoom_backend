@@ -401,27 +401,31 @@ class ActionController extends Connection {
    
    }
 
-   function getAllUsers($token){
-      $validate_jwt = validate_jwt($token);
-      if(!$validate_jwt){
-         echo json_encode([
+ function getAllUsers($token){
+    $validate_jwt = validate_jwt($token);
+
+    if(!$validate_jwt){
+        echo json_encode([
             "status" => "error",
             "message" => "Invalid token"
-         ]);
-         return;
-      }
-      $conn = $this->conn();
-      $quary = "SELECT id, username, email, role, created_at FROM users";
-      $result = pg_query_params($conn, $quary);
-      $users = [];
-      while($row = pg_fetch_assoc($result)){
-         $users[] = $row;
-      }
-      echo json_encode([
-         "status" => "success",
-         "users" => $users
-      ]);
-   }
+        ]);
+        return;
+    }
+
+    $conn = $this->conn();
+
+    $query = "SELECT id, username, email, role, created_at FROM users";
+
+    $stmt = $conn->prepare($query);
+    $stmt->execute();
+
+    $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    echo json_encode([
+        "status" => "success",
+        "users" => $users
+    ]);
+}
    
 }
 
