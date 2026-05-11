@@ -15,30 +15,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
   class Connection {
     private $host = "dpg-d80g0dd0lvsc738mck40-a";
     private $username = "zoom_database_user";
-        private $port = "5432";
     private $password = "mwz1vdugyxkPX3NLAHRxIp2iTU15Uo2S";
     private $database = "zoom_database";
-    protected $conn;
-    
-    public function __construct(){
-        $this->conn = pg_connect(
-           "host={$this->host}
-            port={$this->port}
-            dbname={$this->database}
-            user={$this->username}
-            password={$this->password}"
+    private $port = "5432";
+
+    public $conn;
+
+    public function __construct() {
+        $this->conn = new PDO(
+            "pgsql:host={$this->host};port={$this->port};dbname={$this->database}",
+            $this->username,
+            $this->password
         );
-        if(!$this->conn){
-            die(json_encode([
-                "status" => "error",
-                "message" => "PostgreSQL connection failed"
-            ]));
-        }
+
+        $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     }
-    
-    public function conn(){
+
+    public function conn() {
         return $this->conn;
     }
-  }
-
+}   
 ?>
