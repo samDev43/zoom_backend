@@ -324,7 +324,7 @@ class ActionController extends Connection {
             }
             $finalName = uniqid() . "_" . $profile;
             $destination = $directory . $finalName;
-            if(!move_uploaded_file($temp_image, $destination)){
+            if(!move_uploaded_file($temp_profile, $destination)){
                echo json_encode([
                   "status" => "error",
                   "message" => "Failed to upload image"
