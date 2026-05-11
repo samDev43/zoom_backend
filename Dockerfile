@@ -9,3 +9,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 COPY . /var/www/html/
+
+RUN mkdir -p /var/www/html/api/public/uploads \
+    && chown -R www-data:www-data /var/www/html/api/public/uploads \
+    && chmod -R 755 /var/www/html/api/public/uploads

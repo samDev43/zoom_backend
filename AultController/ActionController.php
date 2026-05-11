@@ -67,7 +67,13 @@ class ActionController extends Connection {
             return;
             }
             $destination = $path . $finalName;
-            move_uploaded_file($temp_image, $destination);
+            if(!move_uploaded_file($temp_image, $destination)){
+               echo json_encode([
+                  "status" => "error",
+                  "message" => "Failed to upload image"
+               ]);
+               return;
+            }
       }else{
           $finalName = "default.png";
          // return;
@@ -318,7 +324,13 @@ class ActionController extends Connection {
             }
             $finalName = uniqid() . "_" . $profile;
             $destination = $directory . $finalName;
-            move_uploaded_file($temp_profile, $destination);
+            if(!move_uploaded_file($temp_image, $destination)){
+               echo json_encode([
+                  "status" => "error",
+                  "message" => "Failed to upload image"
+               ]);
+               return;
+            }
             $quary = "UPDATE users SET profile_picture = $1 WHERE id = $2";
             $result = pg_query_params($conn, $quary, [$finalName, $user_id]);
             if($result){
