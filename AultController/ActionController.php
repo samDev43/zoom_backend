@@ -15,6 +15,15 @@ class ActionController extends Connection {
       }
       $user_id = $validate_token->user_id;
       $conn = $this->conn();
+         $query1 = "SELECT username FROM users WHERE id = $1";
+            $result1 = pg_query_params($conn, $query1, [$user_id]);
+            if(!$result1 || pg_num_rows($result1) == 0){
+               echo json_encode([
+                     "status" => "error",
+                     "message" => "User not found"
+               ]);
+               return;
+         }
       $quary = "SELECT id, username, email, role, profile_picture 
                 FROM users 
                 WHERE id = $1";
@@ -64,6 +73,15 @@ class ActionController extends Connection {
 
          $user_id = $validate_token->user_id;
          $conn = $this->conn();
+         $query1 = "SELECT username FROM users WHERE id = $1";
+         $result1 = pg_query_params($conn, $query1, [$user_id]);
+         if(!$result1 || pg_num_rows($result1) == 0){
+            echo json_encode([
+                  "status" => "error",
+                  "message" => "User not found"
+            ]);
+            return;
+         }
          $quary = 'INSERT INTO posts (user_id, title, content, header_image) VALUES ($1, $2, $3, $4)';
          $result = pg_query_params($conn, $quary, [$user_id, $title, $content, $finalName]);
          if($result){
@@ -92,6 +110,15 @@ class ActionController extends Connection {
          $user_id = $validate_token->user_id;
          $user_name = $validate_token->username;
          $conn = $this->conn();
+         $query1 = "SELECT username FROM users WHERE id = $1";
+         $result1 = pg_query_params($conn, $query1, [$user_id]);
+         if(!$result1 || pg_num_rows($result1) == 0){
+            echo json_encode([
+                  "status" => "error",
+                  "message" => "User not found"
+            ]);
+            return;
+      }
          $quary = "SELECT * FROM posts WHERE user_id = $1";
          $result = pg_query_params($conn, $quary, [$user_id]);
          $userPosts = [];
@@ -168,6 +195,15 @@ class ActionController extends Connection {
          }
          $user_id = $validate_token->user_id;
          $conn = $this->conn();
+         $query1 = "SELECT username FROM users WHERE id = $1";
+         $result1 = pg_query_params($conn, $query1, [$user_id]);
+         if(!$result1 || pg_num_rows($result1) == 0){
+            echo json_encode([
+                  "status" => "error",
+                  "message" => "User not found"
+            ]);
+            return;
+      }
          $quary = "INSERT INTO comments (post_id, user_id, content) VALUES ($1, $2, $3)";
          $result = pg_query_params($conn, $quary, [$post_id, $user_id, $comment]);
          if(!$result){
@@ -213,6 +249,15 @@ class ActionController extends Connection {
       }
       $user_id = $validate_token->user_id;
       $user_role = $validate_token->role;
+      $query1 = "SELECT username FROM users WHERE id = $1";
+         $result1 = pg_query_params($conn, $query1, [$user_id]);
+         if(!$result1 || pg_num_rows($result1) == 0){
+            echo json_encode([
+                  "status" => "error",
+                  "message" => "User not found"
+            ]);
+            return;
+      }
        $quary0 = "SELECT user_id FROM posts WHERE id = $1";
        $result0 = pg_query_params($conn, $quary0, [$post_id]);
        $userId = pg_fetch_assoc($result0);
@@ -250,7 +295,17 @@ class ActionController extends Connection {
                ]);
                return;
             }
+            $conn = $this->conn();
             $user_id = $validate_jwt->user_id;
+            $query1 = "SELECT username FROM users WHERE id = $1";
+               $result1 = pg_query_params($conn, $query1, [$user_id]);
+               if(!$result1 || pg_num_rows($result1) == 0){
+                  echo json_encode([
+                        "status" => "error",
+                        "message" => "User not found"
+                  ]);
+                  return;
+            }
             $allowed = ['jpg', 'jpeg', 'png'];
             $ext = strtolower(pathinfo($profile, PATHINFO_EXTENSION));
             if(!in_array($ext, $allowed)){
@@ -263,7 +318,6 @@ class ActionController extends Connection {
             $finalName = uniqid() . "_" . $profile;
             $destination = $directory . $finalName;
             move_uploaded_file($temp_profile, $destination);
-            $conn = $this->conn();
             $quary = "UPDATE users SET profile_picture = $1 WHERE id = $2";
             $result = pg_query_params($conn, $quary, [$finalName, $user_id]);
             if($result){
@@ -290,6 +344,15 @@ class ActionController extends Connection {
       }
       $user_id = $validate_jwt->user_id;
       $conn = $this->conn();
+      $query1 = "SELECT username FROM users WHERE id = $1";
+         $result1 = pg_query_params($conn, $query1, [$user_id]);
+         if(!$result1 || pg_num_rows($result1) == 0){
+            echo json_encode([
+                  "status" => "error",
+                  "message" => "User not found"
+            ]);
+            return;
+      }
       $quary = "UPDATE users SET username = $1 WHERE id = $2";
       $result = pg_query_params($conn, $quary, [$new_username, $user_id]);
       if($result){
@@ -317,6 +380,15 @@ class ActionController extends Connection {
       }
       $user_id = $validate_jwt->user_id;
       $conn = $this->conn();
+      $query1 = "SELECT username FROM users WHERE id = $1";
+         $result1 = pg_query_params($conn, $query1, [$user_id]);
+         if(!$result1 || pg_num_rows($result1) == 0){
+            echo json_encode([
+                  "status" => "error",
+                  "message" => "User not found"
+            ]);
+            return;
+      }
       $quary = "UPDATE users SET email = $1 WHERE id = $2";
       $result = pg_query_params($conn, $quary, [$new_email, $user_id]);
       if($result){
@@ -344,6 +416,15 @@ class ActionController extends Connection {
             $user_id = $validate_jwt->user_id;
             $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
             $conn = $this->conn();
+            $query1 = "SELECT username FROM users WHERE id = $1";
+               $result1 = pg_query_params($conn, $query1, [$user_id]);
+               if(!$result1 || pg_num_rows($result1) == 0){
+                  echo json_encode([
+                        "status" => "error",
+                        "message" => "User not found"
+                  ]);
+                  return;
+            }
             $quary = "UPDATE users SET password = $1 WHERE id = $2";
             $result = pg_query_params($conn, $quary, [$hashed_password, $user_id]);
             if($result){
@@ -385,6 +466,15 @@ class ActionController extends Connection {
          ]);
          return;
       }
+            $query1 = "SELECT username FROM users WHERE id = $1";
+               $result1 = pg_query_params($conn, $query1, [$user_id]);
+               if(!$result1 || pg_num_rows($result1) == 0){
+                  echo json_encode([
+                        "status" => "error",
+                        "message" => "User not found"
+                  ]);
+                  return;
+            }
       $quary = "DELETE FROM users WHERE id = $1";
       $result = pg_query_params($conn, $quary, [$id]);
        if (!$result) {
@@ -410,7 +500,25 @@ class ActionController extends Connection {
          ]);
          return;
       }
+      $user_id = $validate_jwt->user_id;
+      $user_role = $validate_jwt->role;
+      if($user_role !== "admin"){
+         echo json_encode([
+            "status" => "error",
+            "message" => "Only admins can access this resource"
+         ]);
+         return;
+      }
       $conn = $this->conn();
+       $query1 = "SELECT username FROM users WHERE id = $1";
+               $result1 = pg_query_params($conn, $query1, [$user_id]);
+               if(!$result1 || pg_num_rows($result1) == 0){
+                  echo json_encode([
+                        "status" => "error",
+                        "message" => "User not found"
+                  ]);
+                  return;
+            }
       $quary = "SELECT id, username, email, role, created_at FROM users";
       $result = pg_query($conn, $quary);
       $users = [];
