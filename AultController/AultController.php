@@ -54,7 +54,7 @@ require_once __DIR__ . '/../config/jwt.php';
          $result = pg_query_params($conn, $quary, array($username_email, $username_email));
          if(!$result || pg_num_rows($result) == 0){
             echo json_encode (["status" => "error", "message" => "Invalid credentials"]);
-            return;
+            exit();
          }
          $user = pg_fetch_assoc($result);
 
