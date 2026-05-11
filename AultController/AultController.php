@@ -26,13 +26,11 @@ require_once __DIR__ . '/../config/jwt.php';
          //    }
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
             $conn = $this->conn();
-            $quary = "SELECT email FROM users WHERE email = ?";
-            $stmt = $conn->prepare($quary);
-            $stmt->bind_param("s", $email);
-            $stmt->execute();
-            $result = $stmt->get_result();
+            $quary = "SELECT email FROM users WHERE email = $1";
+            $result = pg_query_params($conn, $quary, array($email));
+            $row = pg_fetch_assoc($result);
 
-            if($result->num_rows > 0){
+            if($row){
             $data = array("status" => "error", "message" => "Email already exists");
             echo json_encode ($data);
             return;
@@ -40,10 +38,9 @@ require_once __DIR__ . '/../config/jwt.php';
             if($email == "samadadmin@zoom.com"){
                $role = "admin";
             }
-               $quary2 = "INSERT INTO users (email, username, password, role) VALUES (?, ?, ?, ?)";
-               $stmt2 = $conn->prepare($quary2);
-               $stmt2->bind_param("ssss", $email, $username, $hashed_password, $role);
-               if($stmt2->execute()){
+               $quary2 = "INSERT INTO users (email, username, password, role) VALUES ($1, $2, $3, $4)";
+               $stmt2 = pg_query_params($conn, $quary2, array($email, $username, $hashed_password, $role));
+               if($stmt2){
                $data = array("status" => "success", "message" => "User registered");
             }
             echo json_encode ($data);
@@ -53,16 +50,13 @@ require_once __DIR__ . '/../config/jwt.php';
      function log_in($username_email, $password){
       // echo json_encode (["status" => "good", "message" => $username_email]);
          $conn = $this->conn();
-         $quary = "SELECT * FROM users WHERE email = ? OR username = ?";
-         $stmt = $conn->prepare($quary);
-         $stmt->bind_param("ss", $username_email, $username_email);
-         $stmt->execute();
-         $result = $stmt->get_result();
-         if($result->num_rows == 0){
+         $quary = "SELECT * FROM users WHERE email = $1 OR username = $2";
+         $result = pg_query_params($conn, $quary, array($username_email, $username_email));
+         if(!$result || pg_num_rows($result) == 0){
             echo json_encode (["status" => "error", "message" => "Invalid username or email or password 4"]);
             return;
          }
-         $user = $result->fetch_assoc();
+         $user = pg_fetch_assoc($result);
          if(password_verify($password, $user['password'])){
             // $_SESSION['user_id'] = $user['id'];
                $jwtt = generate_jwt($user);
