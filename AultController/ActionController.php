@@ -38,7 +38,17 @@ class ActionController extends Connection {
    }
 
     function addPost($title, $excerpt, $content, $image, $temp_image, $path, $imageSize, $token){
-      
+      $validate_token = validate_jwt($token);
+         if(!$validate_token){
+            echo json_encode([
+                  "status" => "error",
+                  "message" => "Invalid token"
+            ]);
+            return;
+         }
+
+         $user_id = $validate_token->user_id;
+         $conn = $this->conn();
       if($image !== null && $temp_image !== null){
           $allowed = ['jpg', 'jpeg', 'png'];
          $ext = strtolower(pathinfo($image, PATHINFO_EXTENSION));
@@ -52,27 +62,17 @@ class ActionController extends Connection {
          }
          $finalName = uniqid() . "_" . $image;
 
-         $destination = $path . $finalName;
-         move_uploaded_file($temp_image, $destination);
          if($imageSize > 2 * 1024 *1024) {
             echo json_encode('File is too large');
             return;
-         }
+            }
+            $destination = $path . $finalName;
+            move_uploaded_file($temp_image, $destination);
       }else{
           $finalName = "default.png";
          // return;
       }
-         $validate_token = validate_jwt($token);
-         if(!$validate_token){
-            echo json_encode([
-                  "status" => "error",
-                  "message" => "Invalid token"
-            ]);
-            return;
-         }
-
-         $user_id = $validate_token->user_id;
-         $conn = $this->conn();
+         
          $query1 = "SELECT username FROM users WHERE id = $1";
          $result1 = pg_query_params($conn, $query1, [$user_id]);
          if(!$result1 || pg_num_rows($result1) == 0){
@@ -88,6 +88,7 @@ class ActionController extends Connection {
             echo json_encode([
             "status" => "success",
             "message" => "Post created successfully",
+            "$destination" => $destination
             ]);
          }else{
             echo json_encode([
